@@ -1,0 +1,106 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  
+  --color-glass: rgba(255, 255, 255, 0.05);
+  --color-glass-border: rgba(255, 255, 255, 0.1);
+  --color-brand-cyan: #06b6d4;
+  --color-brand-purple: #8b5cf6;
+  
+  --animate-fade-in: fade-in 0.6s ease-out;
+  --animate-slide-up: slide-up 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-pulse-slow: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse-slow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .7; }
+}
+
+@layer base {
+  body {
+    @apply bg-neutral-950 text-neutral-100 font-sans antialiased overflow-x-hidden;
+    /* Soft dark ambient background */
+    background: radial-gradient(circle at 15% 50%, rgba(139, 92, 246, 0.1), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(6, 182, 212, 0.1), transparent 25%),
+                #0a0a0a;
+  }
+}
+
+@layer utilities {
+  .glass-card {
+    @apply bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl;
+  }
+  .glass-input {
+    @apply bg-white/5 border border-white/10 text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-brand-purple/50 focus:border-transparent transition-all;
+  }
+  .btn-primary {
+    @apply bg-gradient-to-r from-brand-purple to-brand-cyan hover:opacity-90 text-white font-medium shadow-lg shadow-brand-purple/20 transition-all active:scale-[0.98];
+  }
+  /* Remove arrows from number input */
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    appearance: none;
+    margin: 0;
+  }
+  input[type="number"] {
+    appearance: textfield; /* Firefox */
+  }
+
+  /* Tooltip Utility with 700ms delay */
+  .tooltip-label {
+    @apply invisible opacity-0 absolute top-full left-1/2 -translate-x-1/2 mt-2.5 
+           px-2.5 py-1.5 bg-neutral-900/95 backdrop-blur-xl border border-white/10 
+           text-[10px] font-semibold text-brand-cyan/90 rounded-md shadow-2xl 
+           pointer-events-none whitespace-nowrap z-[100]
+           transition-all duration-300 scale-95;
+    transition-delay: 0ms;
+  }
+  .group:hover .tooltip-label {
+    @apply visible opacity-100 scale-100;
+    transition-delay: 700ms;
+  }
+
+  /* Custom sleek scrollbars */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+  
+  /* Horizontal scrollbars for tabs */
+  .tabs-container::-webkit-scrollbar {
+    height: 2px;
+  }
+  .tabs-container::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .tabs-container::-webkit-scrollbar-thumb {
+    background: rgba(6, 182, 212, 0.5); /* brand-cyan */
+    border-radius: 10px;
+  }
+  .tabs-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(6, 182, 212, 0.8);
+  }
+}

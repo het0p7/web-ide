@@ -1,0 +1,38 @@
+# Securing Terminal Container Execution
+
+This plan outlines the distinct security problems identified in the backend stateful container sessions and the steps needed to solve them.
+
+## Identified Security Problems to Solve
+
+1.  **Improper UID Fallbacks (Root Execution by Default)**
+    *   **Problem:** In `session.service.js`, the code skips passing a `User` when running on Windows (since Windows POSIX UID returns `-1`) or when the backend starts as root. This forces the container environment into running as `root` (UID 0), leading to file permission conflicts (`EACCES: permission denied`) on host-mapped volumes and creating container escape risks.
+2.  **Missing `User` parameter in Terminal WebSocket (`ws/terminal.ws.js`)**
+    *   **Problem:** The `container.exec()` command executed for interactive terminals lacks explicit non-root user constraints. If not strictly specified, `docker exec` can inadvertently invoke bash shells as root, ignoring proper privilege restrictions.
+3.  **Missing Security Restrictions (`SecurityOpt`)**
+    *   **Problem:** Compared to `execution.service.js`, the long-running interactive containers created in `session.service.js` lack critical Docker security flags—such as `SecurityOpt: ["no-new-privileges"]`. This missing constraint allows a malicious user who discovers an exploit to potentially elevate their privileges further within the container and attempt an escape.
+
+## User Review Required
+
+> [!IMPORTANT]
+> Since we use Docker volume caching (`webide-npm-cache`, `webide-pip-cache`, etc.), enforcing a non-root user (`1000:1000`) means these users might have trouble writing to previously created volumes if those volumes were owned by `root`. Docker desktop usually handles this okay, but if `npm install` inside the terminal throws permission errors after this fix, those named Docker volumes might need to be recreated or manually Chown'ed. Please let me know if you would like me to add an automated pre-chown process for the volumes, or if we should just proceed with the core fixes for now.
+
+## Proposed Changes
+
+---
+
+### Backend Service (Session & Terminal)
+
+#### [MODIFY] [session.service.js](file:///c:/Users/het70/Desktop/latesteditor/backend/src/services/session.service.js)
+-   **Enforce Non-Root UID Mapping:** Update the Docker container configuration to explicitly set a fallback `User` string (e.g., `1000:1000`) when valid, non-root system UIDs are not present (specifically on Windows and when started as Root).
+-   **Add Security Options:** Inject `SecurityOpt: ["no-new-privileges"]` strictly into the `HostConfig` dictionary.
+
+#### [MODIFY] [terminal.ws.js](file:///c:/Users/het70/Desktop/latesteditor/backend/src/ws/terminal.ws.js)
+-   **Explicit User Specification in Exec:** Retrieve the safe User mapping string and apply it explicitly within the `container.exec({ ... User: safeUserString })` call to ensure the active terminal interactive shell is absolutely capped at non-root execution.
+
+## Verification Plan
+
+### Test Interactive Terminal Setup (Automatic Backend Start)
+-   Start the backend and observe the creation of a new session container.
+-   Run `whoami` and `id` in the frontend terminal. Ensure it outputs a non-root user (like `node`, or the ID `1000`) instead of `root`.
+-   Verify that files crafted inside the terminal have standard user bounds.
+-   Attempt a `sudo` command internally and ensure it is denied privileges.

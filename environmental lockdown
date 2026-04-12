@@ -1,0 +1,40 @@
+# Environmental Lockdown Implementation Plan
+
+Since both of these remaining threats (AWS Metadata Theft and Direct Disk Exhaustion) bypass the Node.js API (because they are executed directly through the container's bash terminal over the WebSocket), fixing them requires combining a Node-side watcher and an OS-level infrastructure script.
+
+## User Review Required
+> [!IMPORTANT]
+> Because Docker does not allow unprivileged containers to alter their own Kernel routing tables or set native Host-Directory mount quotas, we must attack these problems from the outside. I will build an automatic Disk Watcher into your Node backend, and an EC2 Hardening bash script for your deployment process. **I will set the maximum project disk size per user to 500MB. Please confirm if this quota limit aligns with your expectations.**
+
+## Proposed Changes
+---
+
+### 1. Node.js Background Quota Enforcer (Stopping Disk Consumption)
+
+We will use your existing `session-cleanup.service.js` loop to also monitor project volume sizes in the background. If a malicious user runs a `while true` loop dumping data into their file system, the loop will catch the blooming directory size and forcefully assassinate their container to stop the script.
+
+#### [NEW] [getFolderSize.js](file:///c:/Users/het70/Desktop/latesteditor/backend/src/utils/getFolderSize.js)
+-   Create a fast, non-blocking asynchronous utility using `fs/promises` that calculates the byte size of a given directory recursively.
+
+#### [MODIFY] [session-cleanup.service.js](file:///c:/Users/het70/Desktop/latesteditor/backend/src/services/session-cleanup.service.js)
+-   Integrate the folder size calculation sequence. For every active session, it will pinpoint their `projectRoot` and evaluate its weight. If weight > 500MB, it forcefully kills the Docker container and purges the session. 
+
+---
+
+### 2. Infrastructure Hardening (Stopping AWS Theft)
+
+The absolute safest and most un-hackable way to stop Docker containers from stealing IAM roles inside AWS is to drop packets natively at the host's iptables engine or via AWS Hop limits.
+
+#### [NEW] [ec2-hardening.sh](file:///c:/Users/het70/Desktop/latesteditor/backend/scripts/ec2-hardening.sh)
+-   Write a deployment bash script that you can run once on your host EC2 instance.
+-   It will inject a permanent `iptables` rule dropping all traffic originating from the Docker interface bounds destined for the infamous AWS Metadata IP (`169.254.169.254`).
+-   It will include quick instructions on locking EC2 down via IMDSv2 Hop Limits (the secondary best-practice for AWS).
+
+## Open Questions
+
+- Does the **500MB** background threshold sound like enough space for standard projects on your IDE without being so large that an attacker could crash the server?
+
+## Verification Plan
+
+### Automated Tests
+- I'll mock a large file creation test exceeding 500MB and ensure the cleanup service gracefully detects and executes container removal.

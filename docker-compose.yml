@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: webide-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      # Mount the host Docker socket into the backend container
+      # This allows the backend code to spawn and manage other Docker containers natively
+      - /var/run/docker.sock:/var/run/docker.sock
+    env_file:
+      - ./backend/.env
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: webide-frontend
+    ports:
+      - "80:80"    # In production, EC2 hits port 80 natively
+      - "5173:80"  # For local testing if port 80 is occupied
+    depends_on:
+      - backend
+    restart: unless-stopped

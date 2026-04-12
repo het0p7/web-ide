@@ -1,0 +1,4 @@
+{
+  "ignore": ["storage/*", "storage/**", "node_modules/*", ".git/*"],
+  "watch": ["src/"]
+}

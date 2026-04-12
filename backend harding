@@ -1,0 +1,53 @@
+# Backend Hardening Implementation Plan
+
+This plan aims to execute four powerful mitigations to cap resource exhaustion, close authentication loopholes, and finalize the production readiness of our EC2 Web IDE.
+
+## User Review Required
+
+> [!CAUTION]
+> As part of this plan, we will introduce a **hard limit on concurrent terminal sessions** (e.g. 3 active projects per user at any given time). We will also enforce **rate limiting** on container creation (e.g. max 5 executions per minute per user). Please confirm if these specific numbers (3 sessions, 5 requests/min) align with your expectations, or if they should be adjusted.
+
+## Proposed Changes
+
+---
+
+### Security Middleware & Limits
+
+#### [NEW] [rateLimiter.js](file:///c:/Users/het70/Desktop/latesteditor/backend/src/middleware/rateLimiter.js)
+-   **Create Redis-Backed Rate Limiting:** Implement a lightweight, sliding-window rate limit using your existing `ioredis` configuration. It will track the user's `_id` and block requests exceeding maximum execution bursts to prevent Docker OOM attacks.
+
+#### [MODIFY] [project.routes.js](file:///c:/Users/het70/Desktop/latesteditor/backend/src/routes/project.routes.js)
+-   **Apply Execution Limits:** Attach the new `rateLimit` middleware strictly to our expensive endpoints: `POST /:projectId/execute` and `POST /:projectId/session/start`.
+
+---
+
+### Session Boundaries (session.service.js)
+
+#### [MODIFY] [session.service.js](file:///c:/Users/het70/Desktop/latesteditor/backend/src/services/session.service.js)
+-   **Cap Concurrent Containers (Max 3):** Before spinning up a new stateful workspace container, we will verify against a Redis Set (`user_sessions:{userId}`) tracking the user's active container count. If it exceeds 3 concurrent limits, the request is rejected to preserve EC2 memory.
+-   **Session Set Cleanup:** Add logic to push session creation to the Redis Set, and efficiently prune it when the session dies inside `stopSession()`.
+
+---
+
+### Websocket Authenticity
+
+#### [MODIFY] [terminal.ws.js](file:///c:/Users/het70/Desktop/latesteditor/backend/src/ws/terminal.ws.js)
+-   **Enforce Origin Policies (Stop CSWSH):** Inject `req.headers.origin` verification inside the WebSocket handshake event. Since cookies are attached automatically by the browser, we will drop the active socket if the origin domain executing the request does not match `process.env.FRONTEND_URL` (falling back to localhost locally).
+
+---
+
+### File System Disk Quotas
+
+#### [MODIFY] [filesystem.service.js](file:///c:/Users/het70/Desktop/latesteditor/backend/src/services/filesystem.service.js)
+-   **Strict Content Quotas:** Cloud environments map project directories tightly to host disks. We will extend `createFile` and `updateFile` to cap maximum file upload lengths. Optionally, we'll verify rapid recursive project sizes prior to heavy directory saves to ensure malicious scripts don't bypass Docker binds to consume the host filesystem.
+
+## Open Questions
+
+1.  What is the `process.env.FRONTEND_URL` exactly configured to in this backend standardly, or should I just whitelist `http://localhost:5173` for testing? 
+2.  Are you approving the cap of 3 concurrent sessions?
+
+## Verification Plan
+
+### Automated Tests
+-   Execute an execution spam sequence by hitting `/execute` via API 10 times manually to ensure the `rateLimiter` responds with `429 Too Many Requests` instead of queuing 10 massive Docker containers.
+-   Spoof WebSocket Headers by connecting with an empty or simulated Origin. Ensure the websocket is abruptly closed with a socket closure code `1008`.
