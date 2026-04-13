@@ -1,10 +1,10 @@
 import { spawn } from "child_process";
 
 const REQUIRED_IMAGES = [
-  "node:24",
-  "python:3.15-rc",
-  "gcc:latest",
-  "eclipse-temurin:25-jdk",
+  "node:22-slim",
+  "python:3.12-slim",
+  "frolvlad/alpine-gcc",
+  "eclipse-temurin:17-jre-alpine",
 ];
 
 class DockerService {
