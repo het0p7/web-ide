@@ -49,7 +49,7 @@ export function initTerminalWS(server) {
       const url = new URL(req.url, "http://localhost");
       
       // Enforce WS Origin policies to prevent Cross-Site WebSocket Hijacking
-      const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ['http://localhost:5173', 'http://127.0.0.1:5173'];
+      const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ['http://localhost:5173', 'http://127.0.0.1:5173', process.env.FRONTEND_URL];
       const origin = req.headers.origin;
       if (origin && !allowedOrigins.includes(origin)) {
          ws.send("Authentication failed: Origin policy violation.\r\n");
