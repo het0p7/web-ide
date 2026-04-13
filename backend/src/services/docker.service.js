@@ -4,7 +4,7 @@ const REQUIRED_IMAGES = [
   "node:22-slim",
   "python:3.12-slim",
   "frolvlad/alpine-gcc",
-  "eclipse-temurin:17-jre-alpine",
+  "eclipse-temurin:17-jdk-alpine",
 ];
 
 class DockerService {

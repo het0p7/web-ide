@@ -14,14 +14,14 @@ function getSessionKey(userId, projectId) {
 function getImageForLanguage(language) {
   switch (language) {
     case "javascript":
-      return "node:24";
+      return "node:22-slim";
     case "python":
-      return "python:3.15-rc";
+      return "python:3.12-slim";
     case "c":
     case "cpp":
-      return "gcc:latest";
+      return "frolvlad/alpine-gcc";
     case "java":
-      return "eclipse-temurin:25-jdk";
+      return "eclipse-temurin:17-jre-alpine";
     default:
       throw new Error("Unsupported language");
   }
