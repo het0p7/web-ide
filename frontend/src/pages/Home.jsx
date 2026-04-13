@@ -14,7 +14,7 @@ const Home = () => {
 
   const features = [
     {
-      icon: "codicon:zap",
+      icon: "codicon:symbol-event",
       title: "Zero Setup Environment",
       desc: "Forget manual dependency installations and conflicting node versions. Spin up a fully containerized environment in seconds.",
     },
