@@ -84,10 +84,12 @@ class SessionService {
     const uid = os.userInfo().uid;
     const gid = os.userInfo().gid;
     
-    // On Windows, uid/gid are -1. We enforce 1000:1000 to drop privileges.
-    // If backend runs as root (uid=0), we also force 1000:1000 to ensure safety.
+    // On Windows, uid/gid are -1. 
+    // For Alpine-based images (C/Java), we run as root (0:0) to ensure permission compatibility.
+    // For Debian-based (Node/Python), we drop to 1000:1000 for safety.
+    const isAlpine = image.includes("alpine") || image.includes("gcc");
     const isValidUnixUser = uid > 0 && gid > 0;
-    const userStr = isValidUnixUser ? `${uid}:${gid}` : "1000:1000";
+    const userStr = isAlpine ? "0:0" : (isValidUnixUser ? `${uid}:${gid}` : "1000:1000");
 
     // Write bashrc to /tmp (world-writable) so it works whether we run as root or a mapped user.
     const bashrcPath = "/tmp/.ide_bashrc";
