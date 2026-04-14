@@ -12,6 +12,9 @@ services:
       # Mount the host Docker socket into the backend container
       # This allows the backend code to spawn and manage other Docker containers natively
       - /var/run/docker.sock:/var/run/docker.sock
+      - ./backend/storage:/usr/src/app/storage
+    environment:
+      - HOST_PROJECT_PATH=${PWD}/backend/storage/projects
     env_file:
       - ./backend/.env
     restart: unless-stopped

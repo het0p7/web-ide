@@ -64,11 +64,17 @@ class ExecutionService {
           throw new Error("BASE_PROJECT_PATH not configured");
         }
 
-        const projectRoot = path.resolve(
+        const localProjectRoot = path.resolve(
           basePath,
           String(userId),
           String(projectId),
         );
+
+        // If running on EC2 via Docker-in-Docker, we need the HOST path for the mount
+        const hostBasePath = process.env.HOST_PROJECT_PATH;
+        const projectRootForBind = hostBasePath 
+          ? path.join(hostBasePath, String(userId), String(projectId)) 
+          : localProjectRoot;
 
         const { image, command, timeoutMs = 10000 } = getExecutionConfig(language, entryPoint);
 
@@ -97,7 +103,7 @@ class ExecutionService {
 
           // Mount project folder as writable workspace
           "-v",
-          `${projectRoot}:/workspace:rw`,
+          `${projectRootForBind}:/workspace:rw`,
 
           "-w",
           "/workspace",

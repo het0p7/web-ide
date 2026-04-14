@@ -49,11 +49,17 @@ class SessionService {
     }
 
     const basePath = process.env.BASE_PROJECT_PATH;
-    const projectRoot = path.resolve(
+    const localProjectRoot = path.resolve(
       basePath,
       String(userId),
       String(projectId),
     );
+
+    // If running on EC2 via Docker-in-Docker, we need the HOST path for the mount
+    const hostBasePath = process.env.HOST_PROJECT_PATH;
+    const projectRootForBind = hostBasePath 
+      ? path.join(hostBasePath, String(userId), String(projectId)) 
+      : localProjectRoot;
 
     const image = getImageForLanguage(language);
 
@@ -112,7 +118,7 @@ class SessionService {
 
       HostConfig: {
         Binds: [
-          `${projectRoot}:/workspace`
+          `${projectRootForBind}:/workspace`
         ],
         Memory: 2048 * 1024 * 1024,
         NanoCPUs: 1 * 1e9,
