@@ -84,12 +84,6 @@ async function startServer() {
     await mongoose.connect(MONGO_URI);
     console.log("✅ MongoDB connected");
 
-    // 2️⃣ Ensure Docker images exist
-    await dockerService.ensureImages();
-
-    // Start Orphan Container Cleaup Service
-    sessionCleanupService.start();
-
     // 3️⃣ Start Express server
     let runningPort;
     try {
@@ -105,10 +99,20 @@ async function startServer() {
       }
     }
 
+    // 4️⃣ Post-start tasks (background)
+    // We don't await ensureImages so the server can handle requests immediately
+    dockerService.ensureImages().catch((err) => {
+      console.error("❌ Background Docker verification failed:", err.message);
+    });
+
+    // Start Orphan Container Cleanup Service
+    sessionCleanupService.start();
+
     // Initialize WebSocket only after HTTP server is listening
     initTerminalWS(server);
   } catch (error) {
-    console.error("❌ Server startup failed:", error.message);
+    console.error("❌ Server startup failed:");
+    console.error(error); // Log the full error object for better debugging
     process.exit(1);
   }
 }

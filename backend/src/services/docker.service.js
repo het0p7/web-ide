@@ -1,10 +1,10 @@
 import { spawn } from "child_process";
 
 const REQUIRED_IMAGES = [
-  "node:22-slim",
-  "python:3.12-slim",
-  "frolvlad/alpine-gcc",
-  "eclipse-temurin:17-jdk-alpine",
+  "node:22",
+  "python:3.12",
+  "gcc:14",
+  "eclipse-temurin:17-jdk",
 ];
 
 class DockerService {
@@ -29,7 +29,8 @@ class DockerService {
         if (code === 0) {
           resolve({ stdout, stderr });
         } else {
-          reject(new Error(stderr || "Docker command failed"));
+          const errorMsg = stderr.trim() || `Docker command failed with code ${code}`;
+          reject(new Error(errorMsg));
         }
       });
     });

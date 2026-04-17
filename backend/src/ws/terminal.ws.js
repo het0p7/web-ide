@@ -128,7 +128,7 @@ export function initTerminalWS(server) {
         const userStr = isValidUnixUser ? `${uid}:${gid}` : "1000:1000";
 
         execInstance = await container.exec({
-          Cmd: ["sh"],
+          Cmd: ["bash"],
           AttachStdin: true,
           AttachStdout: true,
           AttachStderr: true,

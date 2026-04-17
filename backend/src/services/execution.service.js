@@ -9,35 +9,35 @@ function getExecutionConfig(language, entryPoint) {
   switch (language) {
     case "javascript":
       return {
-        image: "node:22-slim",
+        image: "node:22",
         command: ["node", entryPoint],
         timeoutMs: 10000,
       };
 
     case "python":
       return {
-        image: "python:3.12-slim",
+        image: "python:3.12",
         command: ["python", entryPoint],
         timeoutMs: 10000,
       };
 
     case "c":
       return {
-        image: "frolvlad/alpine-gcc",
+        image: "gcc:14",
         command: ["sh", "-c", `gcc ${entryPoint} -o program && ./program`],
         timeoutMs: 15000,
       };
 
     case "cpp":
       return {
-        image: "frolvlad/alpine-gcc",
+        image: "gcc:14",
         command: ["sh", "-c", `g++ ${entryPoint} -o program && ./program`],
         timeoutMs: 15000,
       };
 
     case "java":
       return {
-        image: "eclipse-temurin:17-jdk-alpine",
+        image: "eclipse-temurin:17-jdk",
         command: [
           "sh",
           "-c",
