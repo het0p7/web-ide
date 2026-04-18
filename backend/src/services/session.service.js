@@ -111,7 +111,7 @@ class SessionService {
       Cmd: [
         "sh",
         "-c",
-        `echo "export PS1='\\[\\033[1;32m\\]\\u@\\h\\[\\033[0m\\]:\\[\\033[1;34m\\]\\w\\[\\033[0m\\]\\$ '" > ${bashrcPath} && echo "alias ls='ls --color=auto'" >> ${bashrcPath} && echo "alias ll='ls -la --color=auto'" >> ${bashrcPath} && echo "alias grep='grep --color=auto'" >> ${bashrcPath} && sleep infinity`
+        `echo "export PS1='\\[\\033[1;32m\\]webide@\\h\\[\\033[0m\\]:\\[\\033[1;34m\\]\\w\\[\\033[0m\\]\\$ '" > ${bashrcPath} && echo "alias ls='ls --color=auto'" >> ${bashrcPath} && echo "alias ll='ls -la --color=auto'" >> ${bashrcPath} && echo "alias grep='grep --color=auto'" >> ${bashrcPath} && sleep infinity`
       ],
 
       Labels: {
